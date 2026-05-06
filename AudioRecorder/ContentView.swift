@@ -5,6 +5,9 @@ struct ContentView: View {
     @State private var searchText = ""
     @State private var selectedFilter: FilterTab = .all
     
+    @State private var showCalendar = false
+    @State private var selectedDate = Date()
+    
     enum FilterTab: String, CaseIterable {
         case all = "All"
         case shared = "Shared"
@@ -55,13 +58,24 @@ struct ContentView: View {
                         Button(action: { viewModel.toggleRecording() }) {
                             Image(systemName: "plus")
                                 .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(Color.primary)
+                                .foregroundStyle(Color.secondary)
                         }
                         
-                        Button(action: {}) {
+                        Button(action: {
+                            showCalendar.toggle()
+                        }) {
                             Image(systemName: "calendar")
                                 .font(.system(size: 17))
                                 .foregroundStyle(Color.secondary)
+                        }
+                        .sheet(isPresented: $showCalendar) {
+                            DatePicker(
+                                "Select Date",
+                                selection: $selectedDate,
+                                displayedComponents: .date
+                            )
+                            .datePickerStyle(.graphical)
+                            .padding()
                         }
                         
                         Button(action: {}) {
@@ -93,50 +107,44 @@ struct ContentView: View {
     
     private var headerSection: some View {
         VStack(spacing: 12) {
-            HStack(spacing: 10) {
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 14))
-                        .foregroundStyle(Color.secondary)
-                    
-                    TextField("Search", text: $searchText)
-                        .font(.system(size: 15))
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Color.secondary)
+                TextField("Search", text: $searchText)
+                    .font(.system(size: 15))
+                Spacer(minLength: 4)
                 Button(action: {}) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "waveform")
-                            .font(.system(size: 12))
+                    HStack(spacing: 4) {
+                        Image("head_image")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 17, height: 17)
                         Text("Ask AI")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.system(size: 13, weight: .medium))
                     }
                     .foregroundStyle(Color.primary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
-                    .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .frame(width: 99, height: 36)
+                    .background(Color(.white))
+                    .clipShape(Capsule())
                 }
                 .buttonStyle(PlainButtonStyle())
             }
+            .padding(.horizontal, 12)
+            .frame(height: 50)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 25))
             .padding(.horizontal, 16)
             
             HStack(spacing: 8) {
                 ForEach(FilterTab.allCases, id: \.self) { tab in
                     Button(action: { selectedFilter = tab }) {
                         Text(tab.rawValue)
-                            .font(.system(size: 13, weight: selectedFilter == tab ? .semibold : .regular))
+                            .font(.system(size: 14))
                             .foregroundStyle(selectedFilter == tab ? Color.primary : Color.secondary)
                             .padding(.horizontal, 14)
-                            .padding(.vertical, 6)
-                            .background(
-                                selectedFilter == tab
-                                ? Color(.systemGray5)
-                                : Color.clear
-                            )
+                            .frame(height: 27)
+                            .background(Color(.systemGray6))
                             .clipShape(Capsule())
                     }
                     .buttonStyle(PlainButtonStyle())
