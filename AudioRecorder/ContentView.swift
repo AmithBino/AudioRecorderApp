@@ -56,7 +56,7 @@ struct ContentView: View {
                     .zIndex(10)
                 }
             }
-            .navigationTitle("App name")
+            .navigationTitle("Audio Flow")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
