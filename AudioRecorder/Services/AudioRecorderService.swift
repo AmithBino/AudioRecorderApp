@@ -10,6 +10,7 @@ class AudioRecorderService: NSObject, ObservableObject {
     @Published var waveformSamples: [Float] = Array(repeating: 0.0, count: 60)
     @Published var recordingDuration: TimeInterval = 0.0
     @Published var permissionGranted = false
+    @Published var isPaused = false
     
     // MARK: - Private Properties
     private var audioEngine: AVAudioEngine?
@@ -91,10 +92,7 @@ class AudioRecorderService: NSObject, ObservableObject {
         
         startTime = Date()
         
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self, let start = self.startTime else { return }
-            self.recordingDuration = Date().timeIntervalSince(start)
-        }
+        startDurationTimer()
         
         DispatchQueue.main.async {
             self.isRecording = true
@@ -133,6 +131,41 @@ class AudioRecorderService: NSObject, ObservableObject {
         return (fileURL, duration)
     }
     
+    func pauseRecording() {
+        guard isRecording, !isPaused else { return }
+
+        audioEngine?.pause()
+        timer?.invalidate()
+
+        isPaused = true
+    }
+    
+    func resumeRecording() throws {
+        guard isRecording, isPaused else { return }
+
+        try audioEngine?.start()
+
+        startTime = Date().addingTimeInterval(-recordingDuration)
+
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self, let start = self.startTime else { return }
+            self.recordingDuration = Date().timeIntervalSince(start)
+        }
+
+        isPaused = false
+    }
+    
+    private func startDurationTimer() {
+        timer?.invalidate()
+
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self,
+                  let start = self.startTime else { return }
+
+            self.recordingDuration = Date().timeIntervalSince(start)
+        }
+    }
+    
     // MARK: - Private Helpers
     private func calculateRMSLevel(from buffer: AVAudioPCMBuffer) -> Float {
         guard let channelData = buffer.floatChannelData else { return 0 }
@@ -152,8 +185,8 @@ class AudioRecorderService: NSObject, ObservableObject {
     }
     
     private func updateWaveform(with level: Float) {
-        let smoothed = level * 0.7 + (Float.random(in: 0...0.3) * level)
-        
+        let previous = waveformSamples.last ?? 0
+        let smoothed = (previous * 0.75) + (level * 0.25)
         var samples = waveformSamples
         samples.removeFirst()
         samples.append(smoothed)

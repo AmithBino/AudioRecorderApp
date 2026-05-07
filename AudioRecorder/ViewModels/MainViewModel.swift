@@ -45,6 +45,14 @@ class MainViewModel: ObservableObject {
         }
     }
     
+    func togglePauseRecording() {
+        if recorder.isPaused {
+            try? recorder.resumeRecording()
+        } else {
+            recorder.pauseRecording()
+        }
+    }
+    
     private func startRecording() {
         guard recorder.permissionGranted else {
             recorder.requestPermission()

@@ -1,37 +1,63 @@
 import SwiftUI
 
 struct LiveWaveformView: View {
+
     let samples: [Float]
-    var barColor: Color = .white
+
+    var waveColor: Color = Color(hex: "#367AF6")
     var backgroundColor: Color = .clear
     var isActive: Bool = true
-    
-    private let barWidth: CGFloat = 3
-    private let barSpacing: CGFloat = 2
-    private let minBarHeight: CGFloat = 3
-    
+
+    private let waveHeight: CGFloat = 24
+
     var body: some View {
-        Canvas { context, size in
-            let totalBars = samples.count
-            let totalWidth = CGFloat(totalBars) * (barWidth + barSpacing)
-            let startX = (size.width - totalWidth) / 2
-            
-            for (index, sample) in samples.enumerated() {
-                let x = startX + CGFloat(index) * (barWidth + barSpacing)
-                let barHeight = max(minBarHeight, CGFloat(sample) * size.height * 0.85)
-                let y = (size.height - barHeight) / 2
-                
-                let rect = CGRect(x: x, y: y, width: barWidth, height: barHeight)
-                let path = Path(roundedRect: rect, cornerRadius: barWidth / 2)
-                
-                let centerDistance = abs(CGFloat(index) - CGFloat(totalBars) / 2) / (CGFloat(totalBars) / 2)
-                let opacity = isActive ? Double(1.0 - centerDistance * 0.3) : 0.3
-                
-                context.opacity = opacity
-                context.fill(path, with: .color(barColor))
+        GeometryReader { geometry in
+            ZStack {
+                RoundedRectangle(cornerRadius: 28)
+                    .fill(backgroundColor)
+                Path { path in
+                    let width = geometry.size.width
+                    let height = geometry.size.height
+                    let baseY = height * 0.68
+                    let stepX = width / CGFloat(max(samples.count - 1, 1))
+                    path.move(to: CGPoint(x: 0, y: height))
+                    path.addLine(to: CGPoint(x: 0, y: baseY))
+                    var previousPoint = CGPoint(x: 0, y: baseY)
+                    for index in samples.indices {
+                        let x = CGFloat(index) * stepX
+                        let normalized = CGFloat(samples[index])
+                        let amplitude = normalized * waveHeight
+                        let y = baseY - amplitude
+                        let currentPoint = CGPoint(x: x, y: y)
+                        let midPoint = CGPoint(
+                            x: (previousPoint.x + currentPoint.x) / 2,
+                            y: (previousPoint.y + currentPoint.y) / 2
+                        )
+                        path.addQuadCurve(
+                            to: midPoint,
+                            control: previousPoint
+                        )
+                        previousPoint = currentPoint
+                    }
+
+                    path.addLine(to: CGPoint(x: width, y: height))
+                    path.closeSubpath()
+                }
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            waveColor.opacity(0.55),
+                            waveColor.opacity(0.28)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
             }
+            .clipShape(RoundedRectangle(cornerRadius: 28))
         }
-        .animation(.easeOut(duration: 0.05), value: samples)
+        .drawingGroup()
+        .animation(.linear(duration: 0.06), value: samples)
     }
 }
 

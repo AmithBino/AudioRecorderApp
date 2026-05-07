@@ -41,10 +41,16 @@ struct ContentView: View {
                 if viewModel.recorder.isRecording {
                     RecordingPanelView(
                         isRecording: viewModel.recorder.isRecording,
+                        isPaused: viewModel.recorder.isPaused,
                         duration: viewModel.formattedRecordingDuration,
                         samples: viewModel.waveformSamples,
                         level: viewModel.recorder.currentLevel,
-                        onStop: { viewModel.toggleRecording() }
+                        onPause: {
+                            viewModel.togglePauseRecording()
+                        },
+                        onStop: {
+                            viewModel.toggleRecording()
+                        }
                     )
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .zIndex(10)

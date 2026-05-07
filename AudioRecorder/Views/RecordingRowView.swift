@@ -15,7 +15,6 @@ struct RecordingRowView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header
             VStack(alignment: .leading, spacing: 4) {
                 Text(recording.formattedDate)
                     .font(.system(size: 12, weight: .regular))
@@ -30,29 +29,26 @@ struct RecordingRowView: View {
             
             HStack(spacing: 16) {
                 Button(action: onPlay) {
-                    HStack(spacing: 6) {
-                        ZStack {
-                            Circle()
-                                .fill(isPlaying
-                                      ? Color.primary
-                                      : Color(.systemGray5))
-                                .frame(width: 36, height: 36)
-                            
-                            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(isPlaying ? Color(.systemBackground) : Color.primary)
-                                .offset(x: isPlaying ? 0 : 1)
-                        }
+                    HStack(spacing: 10) {
+                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(Color.primary)
+                            .frame(width: 14, height: 14)
                         
                         Text(isPlaying
                              ? formatTime(currentTime)
                              : recording.formattedDuration)
-                            .font(.system(size: 13, weight: .medium, design: .monospaced))
-                            .foregroundStyle(Color.secondary)
-                            .frame(width: 42, alignment: .leading)
+                            .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Color.primary)
                     }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color(.systemGray5))
+                    )
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(.plain)
                 
                 Spacer()
                 
